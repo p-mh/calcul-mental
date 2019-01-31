@@ -1,34 +1,28 @@
 import React, { Component } from 'react';
-import Calcul from './Calcul';
 
-const PLAY = 'PLAY';
-const END = 'END';
+import { Intro, GameBoardOut, EndGame } from './GameStatesComponents';
+
+import { INTRO, PLAY, END } from './constantes';
 
 const addPoint = (prevState, props) => ({
-  goodAnswers: Number(prevState.goodAnswers) + 1,
+  nbPoints: Number(prevState.nbPoints) + 1,
 });
 
 export default class Game extends Component {
   state = {
-    gameState: PLAY,
-    goodAnswers: 0,
+    gameState: INTRO,
+    nbPoints: 0,
     timer: null,
   };
 
-  componentDidMount() {
-    this.startTimer();
-  }
-
   componentDidUpdate() {
-    if (this.state.timer === 0) {
-      this.endGame();
-    }
+    this.state.timer === 0 && this.endGame();
   }
 
   restart = () => {
     this.setState({
       gameState: PLAY,
-      goodAnswers: 0,
+      nbPoints: 0,
     });
     this.startTimer();
   };
@@ -59,28 +53,20 @@ export default class Game extends Component {
   };
 
   render() {
-    const gameBoard = (
-      <div>
-        <Calcul addOnePoint={this.addOnePoint} />
-        <p>
-          Good answers: {this.state.goodAnswers} | Time left :{' '}
-          {this.state.timer}
-        </p>
-      </div>
-    );
+    const { nbPoints, timer, gameState } = this.state;
 
-    const endGame = (
-      <div>
-        <p>You made {this.state.goodAnswers} points</p>
-        <button onClick={this.restart}>Play again</button>
-      </div>
-    );
+    const gameStates = {
+      INTRO: <Intro restart={this.restart} />,
+      PLAY: (
+        <GameBoardOut
+          addOnePoint={this.addOnePoint}
+          timer={timer}
+          nbPoints={nbPoints}
+        />
+      ),
+      END: <EndGame restart={this.restart} nbPoints={nbPoints} />,
+    };
 
-    return (
-      <div>
-        {this.state.gameState === PLAY && gameBoard}
-        {this.state.gameState === END && endGame}
-      </div>
-    );
+    return <div className="game">{gameStates[gameState]}</div>;
   }
 }
